@@ -61,11 +61,12 @@ public class Player : MonoBehaviour
             //Aplico un movimiento, generando un nuevo tablero con ese movimiento
             boardManager.Move(n.board, s, turn);
             //si queremos imprimir el nodo generado (tablero hijo)
-            boardManager.PrintBoard(n.board);
+            //boardManager.PrintBoard(n.board);
         }
 
         foreach (Node nodoHijo in root.childList)
-        {
+        {   
+            //Generamos segundo nivel de nodos hijos
             //generamos los tableros de los hijos de root
             List<int> selectableTilesHijosNv1 = boardManager.FindSelectableTiles(nodoHijo.board, turn);
 
@@ -82,18 +83,61 @@ public class Player : MonoBehaviour
                 //Aplico un movimiento, generando un nuevo tablero con ese movimiento
                 boardManager.Move(n.board, s, turn);
                 //si queremos imprimir el nodo generado (tablero hijo)
-                boardManager.PrintBoard(n.board);
+                //boardManager.PrintBoard(n.board);
             }
 
 
         }
+        foreach (Node nodoHijo in root.childList)
+        {
+            foreach (Node nodoHijo2 in nodoHijo.childList)
+            {
+                //Generamos tercer nivel de nodos hijos
+                //generamos los tableros de los hijos
+                List<int> selectableTilesHijosNv2 = boardManager.FindSelectableTiles(nodoHijo2.board, turn);
 
+                foreach (int s in selectableTilesHijosNv2)
+                {
+                    //Creamos los hijos del nivel 2
+                    Node n = new Node(nodoHijo2.board);
+                    //Lo añadimos a la lista de nodos hijo
+                    nodoHijo2.childList.Add(n);
+                    //Enlazo con su padre
+                    n.parent = nodoHijo2;
+                    //En nivel 3, los hijos son MIN
+                    n.type = Constants.MIN;
+                    //Aplico un movimiento, generando un nuevo tablero con ese movimiento
+                    boardManager.Move(n.board, s, turn);
+                    //si queremos imprimir el nodo generado (tablero hijo)
+                    //boardManager.PrintBoard(n.board);
+
+                }
+            }
+        }
         //Selecciono un movimiento aleatorio. Esto habrá que modificarlo para elegir el mejor movimiento según MINIMAX
         //int movimiento = Random.Range(0, selectableTiles.Count);
         int movimiento = 0;
 
         return selectableTiles[movimiento];
 
+    }
+    public int funcionUtility(Node nodo, BoardManager bm, int turn, List<int> selectableTiles)
+    {
+        int fichasDeTuColor = 0;
+        int fichasQueCambia = 0;
+        //recuperamos las fichas de cada color
+        fichasDeTuColor = bm.CountPieces(nodo.board, turn);
+        //por cada tile a la que se puede mover, calculamos cuantas cambia y nos quedamos con el maximo
+        foreach(int i in selectableTiles)
+        {
+            List<int> cas = bm.FindSwappablePieces(nodo.board, i, turn);
+            if(cas.Count >= fichasQueCambia)
+            {
+                fichasQueCambia = cas.Count;
+            }
+        }
+        int utilidad = (fichasDeTuColor+fichasQueCambia)/2;
+        return utilidad;
     }
 
 }
